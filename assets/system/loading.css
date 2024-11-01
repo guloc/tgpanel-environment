@@ -1,0 +1,44 @@
+
+@keyframes spin {
+    to { transform: rotate(1turn); }
+}
+.loading-indicator {
+    position: relative;
+    display: none;
+    width: 5em;
+    height: 5em;
+    font-size: 3px;
+    text-indent: 999em;
+    overflow: hidden;
+    animation: spin 1s infinite steps(8);
+}
+.loading-indicator:before,
+.loading-indicator:after,
+.loading-indicator > div:before,
+.loading-indicator > div:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 2.25em;
+    width: .5em;
+    height: 1.5em;
+    border-radius: .2em;
+    background: #eee;
+    box-shadow: 0 3.5em #eee;
+    transform-origin: 50% 2.5em;
+}
+.loading-indicator:before {
+    background: #555;
+}
+.loading-indicator:after {
+    transform: rotate(-45deg);
+    background: #777;
+}
+.loading-indicator > div:before {
+    transform: rotate(-90deg);
+    background: #999;
+}
+.loading-indicator > div:after {
+    transform: rotate(-135deg);
+    background: #bbb;
+}

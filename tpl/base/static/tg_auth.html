@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="ie=edge" http-equiv="x-ua-compatible">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="TG Auth">
+    <meta name="keywords" content="">
+    <meta name="robots" content="index, follow, noodp">
+    <meta name="googlebot" content="index, follow">
+    <meta name="google" content="notranslate">
+    <meta name="format-detection" content="telephone=no">
+    <title>TG Auth</title>
+    <link rel="icon" href="/assets/img/core-img/favicon.ico">
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/animate.css">
+    <link rel="stylesheet" href="/assets/style.css">
+    <style>
+        input[type="string"] {
+            font-size: 14px;
+            border-radius: .5rem;
+            padding: .5rem 1rem;
+            margin: .5rem 1rem;
+            -webkit-text-fill-color: #9799ac;
+            border: 2px solid #31374a !important;
+            background-color: #0f111a !important;
+        }
+    </style>
+</head>
+<body class="login-area">
+<div class="main-content- h-100vh">
+  <div class="container h-100">
+    <div class="row h-100 align-items-center justify-content-center">
+      <div class="col-sm-10 col-md-7 col-lg-5">
+        <div class="middle-box">
+          <div class="card-body">
+            <div class="log-header-area card p-4 mb-4 text-center">
+              <h5>Авторизация Telegram</h5>
+            </div>
+            <div class="card">
+              <div class="card-body p-4">
+                <form method="POST">
+                  <div id="form-notes" class="form-group mb-3">
+
+                    %s
+
+                  </div>
+                  <div id="form-inputs" class="form-group mb-3 d-flex flex-column">
+
+                    %s
+
+                  </div>
+                  <div class="form-group mb-3">
+                    <button class="btn btn-primary btn-lg w-100" type="submit">Продолжить</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/assets/js/jquery.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(() => {
+        let replaces = [
+            {
+                from: 'Enter your API ID and API hash',
+                to: 'Введите ваши API ID и API hash'
+            },
+            {
+                from: 'Note that you can also provide the API ID/hash directly in the code using the ',
+                to: ''
+            },
+            {
+                from: '<a target="_blank" href="https://docs.madelineproto.xyz/docs/SETTINGS.html">settings</a>',
+                to: ''
+            },
+            {
+                from: /<br>\s*\.\s*<br>/,
+                to: ''
+            },
+            {
+                from: 'Login to ',
+                to: 'Авторизйутесь в '
+            },
+            {
+                from: 'Go to API development tools',
+                to: 'Перейдите в раздел "API development tools"'
+            },
+            {
+                from: 'App title: your app\'s name, can be anything',
+                to: 'App title: Название вашего приложения может быть любым'
+            },
+            {
+                from: 'URL: your app/website\'s URL, or t.me/yourusername',
+                to: 'URL: Адрес вашего сайта, либо t.me/ваше_имя'
+            },
+            {
+                from: 'Platform: anything',
+                to: 'Platform: Любая'
+            },
+            {
+                from: 'Description: Describe your app here',
+                to: 'Description: Описание'
+            },
+            {
+                from: 'Click on create application',
+                to: 'Нажмите "create application"'
+            },
+            {
+                from: 'Enter your phone number ',
+                to: 'Введите ваш номер телефона'
+            },
+            {
+                from: 'Enter the code ',
+                to: 'Введите код'
+            },
+            {
+                from: 'Short name: your app\'s short name, alphanumeric, 5-32 characters',
+                to: 'Short name: короткое имя, латинские буквы и цифры, 5-32 символов'
+            }
+        ];
+        $.each(replaces, (i, item) => {
+            $('#form-notes').html($('#form-notes').html().replace(item.from, item.to));
+        });
+        if ($('#form-inputs').html().includes('<option value="phone">')) {
+            $('option[value="phone"]').prop('selected', true);
+            $('button[type="submit"]').click();
+        }
+        
+    });
+</script>
+</body>
+</html>

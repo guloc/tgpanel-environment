@@ -1,0 +1,400 @@
+#dbg {
+  display: none;
+  color: black;
+}
+#codeigniter_profiler {
+  display: none;
+}
+.dbg-modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, .5);
+  display: table;
+  transition: opacity .3s ease;
+}
+.dbg-modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+  overflow: auto
+}
+.dbg-modal-container {
+    width: 1000px;
+    margin: 0px auto;
+    padding: 10px;
+    background-color: #e6e6e6;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+    transition: all .3s ease;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.dbg-modal-header h3 {
+    margin-top: 0;
+    color: #000;
+    font-weight: 600;
+    font-size: 1.3em;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.dbg-modal-body {
+    margin: 0;
+}
+.dbg-modal-body .row{
+    margin-left: 15px;
+}
+.dbg-modal-close-button {
+    color: #555;
+    float: right;
+    cursor: pointer;
+}
+.dbg-modal-close-button:hover {
+    color: #000;
+}
+.dbg-modal-close-button.for-mobile {
+    display: none;
+}
+.dbg-modal-close-button.for-screen {
+    display: inline-block;
+}
+/*
+ * The following styles are auto-applied to elements with
+ * transition="modal" when their visibility is toggled
+ * by Vue.js.
+ *
+ * You can easily play with the modal transition by editing
+ * these styles.
+ */
+.dbg-modal-enter {
+  opacity: 0;
+}
+.dbg-modal-leave-active {
+  opacity: 0;
+}
+.dbg-modal-enter .dbg-modal-container,
+.dbg-modal-leave-active .dbg-modal-container {
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
+}
+.dbg-modal-container {
+    width: 1000px;
+    max-width: 1000px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#vars_trigger {
+    cursor: pointer;
+    position: fixed;
+    bottom: 0;
+    left: calc(50% - 23px);
+    padding: 4px 10px;
+    border-radius: 50%;
+    font-size: 26px;
+    z-index: 800;
+    opacity: 0.65;
+    background-image: linear-gradient(to bottom, #79ccff 0%, #9b74ff 100%);
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    border: 0;
+}
+
+.dbg-modal-title {
+    font-weight: 600;
+    font-size: 24px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.dbg-title {
+    display: inline-block;
+    margin-left: 20px;
+    font-weight: 500;
+    color: #000;
+}
+.tools-block {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: content-box;
+    font-size: 1.3em;
+    margin: 7px 0;
+}
+#vars_filter {
+    width: 150px;
+    text-align: center;
+    margin: 5px 0 5px 10px;
+    height: 40px;
+    padding: 0 20px;
+    color: #394353;
+    border: 1px solid #93a5bb;
+    border-radius: 20px;
+    outline: none;
+    font-size: 12px;
+    vertical-align: middle;
+}
+.textbox-cleaner {
+    display: none;
+    margin: 0 -20px 0 0;
+    position: relative;
+    left: -35px;
+    color: #555;
+    background: rgba(255, 255, 255, 0);
+    text-shadow: rgba(255, 0, 0, 1) 0 0 50px;
+    opacity: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+.textbox-cleaner.active {
+    display: inline-block;
+    opacity: 1;
+    -webkit-transition: all 1s ease;
+    -moz-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    transition: all 1s ease;
+}
+.dbg-tools-wrapper {
+    display: inline-flex;
+    align-items: inherit;
+}
+.dbg-button, .tool-button {
+    color: #fff !important;
+    text-decoration: none;
+    font-weight: 450;
+    margin-left: 5px;
+    cursor: pointer;
+}
+.dbg-button {
+    background: #6495ed !important;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-align: center;
+}
+.dbg-button.active {
+    background: #4c74bd !important;
+    -webkit-transition: all 1s ease;
+    -moz-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    transition: all 1s ease;
+}
+.tool-button {
+    background: #5b4eb2 !important;
+}
+#cache_url {
+    background: #704eb2 !important;
+    -webkit-transition: all 2s ease;
+    -moz-transition: all 2s ease;
+    -o-transition: all 2s ease;
+    transition: all 2s ease;
+}
+#cache_url.successful-act {
+    background: #5ea052 !important;
+    -webkit-transition: all .5s ease;
+    -moz-transition: all .5s ease;
+    -o-transition: all .5s ease;
+    transition: all .5s ease;
+}
+#cache_url.failed-act {
+    background: #b24e4e !important;
+    -webkit-transition: all .5s ease;
+    -moz-transition: all .5s ease;
+    -o-transition: all .5s ease;
+    transition: all .5s ease;
+}
+.tool-button:hover {
+    color: #f0e68c !important;
+}
+.loading-indicator {
+    display: inline-block;
+}
+
+.dbg-content-row {
+    display: flex;
+    flex-direction: row;
+}
+.dbg-content-row.mini {
+    flex-direction: column;
+}
+#var_list {
+    background: #ddd;
+    width: 300px;
+    height: 500px;
+    display: inline-block;
+    vertical-align: top;
+    text-align: left;
+    overflow-x: scroll;
+    position: inherit;
+    padding: 5px;
+    margin: 0;
+    font-size: 12px;
+}
+#var_list a {
+    text-decoration: none;
+    color: #007bff;
+    border-radius: 20px 0 0 20px;
+}
+.dbg-expand-button {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    height: fit-content;
+    left: -30px;
+    font-size: 20px;
+    font-weight: 800;
+}
+.dbg-expand-button.active {
+    display: block;
+    left: 0;
+    width: 95%;
+    text-align: center;
+    margin: 5px 10px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    background: #ddd;
+}
+
+.var_content {
+    background: #eee;
+    width: 650px;
+    height: 510px;
+    display: inline-block;
+    vertical-align: top;
+    text-align: left;
+    border-radius: 0 20px 20px 0;
+    overflow-x: scroll;
+    margin: 0;
+    font-size: 12px;
+}
+.var_content.fullwidth {
+    width: 95%;
+    margin: 5px 20px;
+    border-radius: 2px;
+}
+.var_content pre {
+    height: 93%;
+    overflow-x: scroll;
+}
+.var_content.wordwrap pre {
+    white-space: pre-wrap;
+}
+#logs_tab {
+    overflow-x: unset;
+}
+#vars_trigger:hover {
+    opacity: 1;
+}
+#vars_content {
+    background: #e6e6e6;
+}
+.simple-toggler {
+    display: inline-block;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 800;
+    margin: 5px;
+    padding: 0 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+.simple-toggler.active {
+    transition: 0.5s;
+    background: #8c8;
+}
+.vcc_button {
+    font-size: 12px;
+}
+
+@media screen and (max-width: 1050px){
+    .dbg-modal-container {
+        width: calc(100% - 80px);
+        height: calc(100vh - 50px);
+        margin-top: 50px;
+        margin-right: 80px;
+    }
+    .dbg-modal-close-button.for-mobile {
+        display: inline-block;
+        margin: -15px 0 0 85px;
+        font-size: 36px;
+    }
+    .dbg-modal-close-button.for-screen {
+        display: none;
+    }
+    #var_list {
+        height: 430px;
+    }
+    .var_content {
+        width: calc(100% - 320px);
+        height: 430px;
+    }
+    .var_content.fullwidth {
+        width: 90vw;
+        margin: 5px 10px;
+        border-radius: 2px;
+    }
+}
+@media screen and (min-width: 600px) and (max-width: 1050px) {
+    .dbg-modal-container {
+        width: 100vw;
+        margin-top: 70px;
+    }
+    .tools-block {
+        width: 90vw;
+    }
+    .dbg-tools-wrapper {
+        justify-content: space-around;
+    }
+    .dbg-button {
+        width: 20vh;
+        margin: 10px;
+    }
+}
+@media screen and (max-width: 700px){
+    .dbg-tools-wrapper {
+        width: 100vw;
+        justify-content: left;
+    }
+    .dbg-modal-close-button.for-mobile {
+        display: inline-block;
+        margin: 0 0 0 30px;
+        font-size: 36px;
+    }
+    .dbg-modal-body .row {
+        margin: 0;
+    }
+    .dbg-title {
+        margin-left: 0;
+    }
+    .tools-block {
+        line-height: 36px;
+    }
+    .tool-button {
+        margin: 0;
+    }
+    #vars_filter {
+        margin: 0 10px;
+    }
+    #var_list {
+        height: 200px;
+        width: calc(100vw - 35px);
+    }
+    .var_content {
+        width: 100vw;
+        height: 90vh;
+        margin: 5px 20px;
+        border-radius: 2px;
+    }
+}
+@media screen and (min-width: 1200px){
+    .dbg-modal-container {
+        width: 1200px;
+        max-width: 1200px;
+    }
+    .var_content {
+        width: 840px;
+    }
+}

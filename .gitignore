@@ -1,0 +1,30 @@
+# Configuration files
+config.php
+app/config/config.php
+app/config/database.php
+
+# Log files
+*.log
+app/logs/*
+!app/logs/index.html
+MadelineProto.log
+
+# Cache and session
+app/cache/*
+!app/cache/index.html
+session.madeline/*
+
+# Temporary files
+*.tmp
+*.temp
+
+# System specific files
+.DS_Store
+Thumbs.db
+
+# Dependencies that should be installed via package manager
+vendor/
+
+# Build artifacts
+*.zip
+tgpanel.zip
