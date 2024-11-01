@@ -28,12 +28,21 @@ check() {
     fi
 }
 
+# Функция для проверки наличия процесса
+check_process() {
+    if pgrep -f "$1" > /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 echo -e "\n${YELLOW}[1/7] Обновление системы...${NC}"
 apt update && apt upgrade -y
 check "Обновление системы"
 
 echo -e "\n${YELLOW}[2/7] Установка необходимых пакетов...${NC}"
-apt install -y wget curl unzip git ffmpeg cron ufw
+apt install -y wget curl unzip git ffmpeg cron ufw python3 python3-pip
 check "Установка пакетов"
 
 echo -e "\n${YELLOW}[3/7] Настройка файрвола...${NC}"
@@ -49,7 +58,11 @@ echo "y" | ufw enable
 check "Настройка файрвола"
 
 echo -e "\n${YELLOW}[4/7] Удаление старой установки...${NC}"
-systemctl stop bt >/dev/null 2>&1
+if systemctl is-active --quiet bt; then
+    systemctl stop bt
+fi
+killall -9 bt-panel >/dev/null 2>&1
+killall -9 bt-task >/dev/null 2>&1
 rm -rf /www/server/panel
 rm -rf /www/server/nginx
 rm -rf /www/server/nodejs
@@ -58,16 +71,49 @@ systemctl daemon-reload
 check "Удаление старой установки"
 
 echo -e "\n${YELLOW}[5/7] Установка aaPanel...${NC}"
-wget -O aapanel.sh https://www.aapanel.com/script/install-ubuntu_6.0_en.sh
-bash aapanel.sh aapanel
+# Скачиваем установщик
+if ! wget -O aapanel.sh https://www.aapanel.com/script/install-ubuntu_6.0_en.sh; then
+    echo -e "${RED}Ошибка загрузки установщика aaPanel${NC}"
+    exit 1
+fi
+
+# Делаем скрипт исполняемым
+chmod +x aapanel.sh
+
+# Запускаем установку с таймаутом
+timeout 600 bash aapanel.sh aapanel
+
+# Проверяем успешность установки
+if [ ! -f "/www/server/panel/data/port.pl" ]; then
+    echo -e "${RED}Ошибка установки aaPanel. Проверьте логи установки.${NC}"
+    exit 1
+fi
+
 check "Установка aaPanel"
 
 echo -e "\n${YELLOW}[6/7] Ожидание запуска aaPanel...${NC}"
-sleep 30
-check "Ожидание запуска"
+# Ждем запуска процессов панели
+counter=0
+while ! check_process "bt-panel" && [ $counter -lt 30 ]; do
+    sleep 10
+    counter=$((counter + 1))
+    echo -e "${YELLOW}Ожидание запуска панели... ($counter/30)${NC}"
+done
+
+if ! check_process "bt-panel"; then
+    echo -e "${RED}Ошибка: панель не запустилась после установки${NC}"
+    exit 1
+fi
+
+check "Запуск панели"
 
 echo -e "\n${YELLOW}[7/7] Настройка прав доступа...${NC}"
+mkdir -p /www/wwwroot
 chmod -R 755 /www/wwwroot/
+mkdir -p /www/wwwroot/*/app/cache
+mkdir -p /www/wwwroot/*/app/logs
+mkdir -p /www/wwwroot/*/session.madeline
+mkdir -p /www/wwwroot/*/assets/upload
 chmod -R 777 /www/wwwroot/*/app/cache
 chmod -R 777 /www/wwwroot/*/app/logs
 chmod -R 777 /www/wwwroot/*/session.madeline
