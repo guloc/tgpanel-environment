@@ -42,7 +42,7 @@ apt update && apt upgrade -y
 check "Обновление системы"
 
 echo -e "\n${YELLOW}[2/7] Установка необходимых пакетов...${NC}"
-apt install -y wget curl unzip git ffmpeg cron ufw python3 python3-pip
+apt install -y wget curl unzip git ffmpeg cron ufw python3 python3-pip expect
 check "Установка пакетов"
 
 echo -e "\n${YELLOW}[3/7] Настройка файрвола...${NC}"
@@ -54,6 +54,7 @@ ufw allow 20
 ufw allow 21
 ufw allow 888
 ufw allow 38532
+ufw allow 10514
 echo "y" | ufw enable
 check "Настройка файрвола"
 
@@ -77,11 +78,27 @@ if ! wget -O aapanel.sh https://www.aapanel.com/script/install-ubuntu_6.0_en.sh;
     exit 1
 fi
 
-# Делаем скрипт исполняемым
-chmod +x aapanel.sh
+# Создаем expect скрипт для автоматического ответа
+cat > install_aapanel.exp << 'EOF'
+#!/usr/bin/expect -f
+set timeout -1
 
-# Запускаем установку с таймаутом
-timeout 600 bash aapanel.sh aapanel
+spawn bash aapanel.sh aapanel
+
+# Отвечаем "y" на все вопросы
+expect {
+    "Do you want to install aaPanel" { send "y\r"; exp_continue }
+    "Do you need to install offline" { send "n\r"; exp_continue }
+    "Please enter your email" { send "admin@localhost\r"; exp_continue }
+    eof
+}
+EOF
+
+# Делаем expect скрипт исполняемым
+chmod +x install_aapanel.exp
+
+# Запускаем установку через expect
+./install_aapanel.exp
 
 # Проверяем успешность установки
 if [ ! -f "/www/server/panel/data/port.pl" ]; then
