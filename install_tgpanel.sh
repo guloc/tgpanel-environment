@@ -13,7 +13,7 @@ echo -e "${GREEN}============================================${NC}"
 # Проверка прав root
 if [ "$EUID" -ne 0 ]; then 
     echo -e "${RED}Запустите скрипт от имени root:${NC}"
-    echo -e "${YELLOW}curl -sSL https://raw.githubusercontent.com/your-repo/tgpanel/main/install_tgpanel.sh | sudo bash${NC}"
+    echo -e "${YELLOW}curl -sSL https://raw.githubusercontent.com/guloc/tgpanel/master/install_tgpanel.sh | sudo bash${NC}"
     exit 1
 fi
 
@@ -38,20 +38,19 @@ check "Установка пакетов"
 
 echo -e "\n${YELLOW}[3/6] Установка aaPanel...${NC}"
 wget -O install.sh http://www.aapanel.com/script/install-ubuntu_6.0_en.sh
-bash install.sh aapanel
+# Автоматический режим установки
+printf "y\n" | bash install.sh aapanel
 check "Установка aaPanel"
 
 echo -e "\n${YELLOW}[4/6] Настройка PHP и MySQL...${NC}"
 # Ждем запуск aaPanel
-sleep 10
+sleep 30
 
-# Установка PHP 8.2
-bt 12
-printf "11\n" | bt
+# Установка PHP 8.2 в автоматическом режиме
+printf "11\n" | bt 12
 
-# Установка расширений PHP
-bt 13
-printf "1\ncurl,gd,mbstring,mysql,xml,zip,json\n" | bt
+# Установка расширений PHP в автоматическом режиме
+printf "1\ncurl,gd,mbstring,mysql,xml,zip,json\n" | bt 13
 
 echo -e "\n${YELLOW}[5/6] Настройка прав доступа...${NC}"
 chmod -R 755 /www/wwwroot/
