@@ -28,25 +28,22 @@ check() {
     fi
 }
 
-echo -e "\n${YELLOW}[1/7] Обновление системы...${NC}"
+echo -e "\n${YELLOW}[1/8] Очистка системы...${NC}"
+# Удаляем конфликтующие пакеты
+apt remove -y apache2* nginx* php* mysql* ufw fail2ban
+apt autoremove -y
+apt clean
+check "Очистка системы"
+
+echo -e "\n${YELLOW}[2/8] Обновление системы...${NC}"
 apt update && apt upgrade -y
 check "Обновление системы"
 
-echo -e "\n${YELLOW}[2/7] Установка необходимых пакетов...${NC}"
-apt install -y wget curl git ffmpeg cron ufw python3 python3-pip
-check "Установка пакетов"
+echo -e "\n${YELLOW}[3/8] Установка минимальных зависимостей...${NC}"
+apt install -y curl wget git ffmpeg
+check "Установка зависимостей"
 
-echo -e "\n${YELLOW}[3/7] Настройка файрвола...${NC}"
-# Открываем необходимые порты
-ufw allow ssh
-ufw allow 80
-ufw allow 443
-ufw allow 8083
-ufw allow 'Nginx Full'
-echo "y" | ufw enable
-check "Настройка файрвола"
-
-echo -e "\n${YELLOW}[4/7] Удаление старой установки...${NC}"
+echo -e "\n${YELLOW}[4/8] Удаление старой установки...${NC}"
 if [ -f /usr/local/hestia/bin/v-list-sys-hestia-autoupdate ]; then
     /usr/local/hestia/bin/v-delete-sys-hestia-autoupdate
 fi
@@ -54,32 +51,40 @@ apt remove -y hestia hestia-nginx hestia-php
 rm -rf /usr/local/hestia
 check "Удаление старой установки"
 
-echo -e "\n${YELLOW}[5/7] Установка HestiaCP...${NC}"
+echo -e "\n${YELLOW}[5/8] Установка HestiaCP...${NC}"
 # Скачиваем установщик HestiaCP
 wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh
 
-# Создаем файл конфигурации для автоматической установки
-cat > hst-install-config << EOF
-apache=false
-phpfpm=true
-multiphp=true
-vsftpd=true
-proftpd=false
-named=true
-mysql=true
-postgresql=false
-exim=true
-dovecot=true
-sieve=true
-clamav=false
-spamassassin=false
-iptables=true
-fail2ban=true
-quota=true
-EOF
+# Делаем скрипт исполняемым
+chmod +x hst-install.sh
+
+# Генерируем случайный пароль
+ADMIN_PASS=$(openssl rand -base64 12)
 
 # Запускаем установку
-bash hst-install.sh --interactive no --email admin@localhost --password $(openssl rand -base64 12) --hostname $(hostname -f) --with-debs /tmp/hestiacp-src/debs
+bash hst-install.sh --force \
+    --interactive no \
+    --email admin@localhost \
+    --password $ADMIN_PASS \
+    --hostname $(hostname -f) \
+    --apache no \
+    --nginx yes \
+    --php yes \
+    --multiphp yes \
+    --vsftpd yes \
+    --proftpd no \
+    --named yes \
+    --mysql yes \
+    --postgresql no \
+    --exim yes \
+    --dovecot yes \
+    --sieve no \
+    --clamav no \
+    --spamassassin no \
+    --iptables yes \
+    --fail2ban yes \
+    --quota yes \
+    --api yes
 
 # Проверяем успешность установки
 if [ ! -f "/usr/local/hestia/bin/v-list-sys-info" ]; then
@@ -89,13 +94,22 @@ fi
 
 check "Установка HestiaCP"
 
-echo -e "\n${YELLOW}[6/7] Настройка PHP и дополнительных компонентов...${NC}"
+echo -e "\n${YELLOW}[6/8] Настройка PHP и дополнительных компонентов...${NC}"
 # Устанавливаем PHP 8.2 и необходимые расширения
 /usr/local/hestia/bin/v-add-web-php 8.2
-apt install -y php8.2-curl php8.2-gd php8.2-mbstring php8.2-mysql php8.2-xml php8.2-zip php8.2-ioncube-loader
+apt install -y php8.2-curl php8.2-gd php8.2-mbstring php8.2-mysql php8.2-xml php8.2-zip
 check "Настройка PHP"
 
-echo -e "\n${YELLOW}[7/7] Настройка прав доступа...${NC}"
+echo -e "\n${YELLOW}[7/8] Установка Ioncube...${NC}"
+cd /tmp
+wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+tar xzf ioncube_loaders_lin_x86-64.tar.gz
+PHP_INI_DIR=$(php -i | grep "Loaded Configuration File" | awk '{print $5}' | sed 's/.\{9\}$//')
+cp ioncube/ioncube_loader_lin_8.2.so $PHP_INI_DIR/
+echo "zend_extension = $PHP_INI_DIR/ioncube_loader_lin_8.2.so" > $PHP_INI_DIR/conf.d/00-ioncube.ini
+check "Установка Ioncube"
+
+echo -e "\n${YELLOW}[8/8] Настройка прав доступа...${NC}"
 mkdir -p /home/admin/web/tgpanel/public_html
 chmod -R 755 /home/admin/web/tgpanel/public_html
 mkdir -p /home/admin/web/tgpanel/public_html/app/cache
@@ -109,7 +123,6 @@ chmod -R 777 /home/admin/web/tgpanel/public_html/assets/upload
 check "Настройка прав"
 
 # Получение данных для входа
-ADMIN_PASS=$(cat /usr/local/hestia/conf/defaults/hst-install.conf | grep "ADMIN_PASS" | cut -d "=" -f2)
 PANEL_PORT="8083"
 EXTERNAL_IP=$(curl -s https://api.ipify.org)
 
