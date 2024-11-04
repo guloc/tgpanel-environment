@@ -2,6 +2,27 @@
 
 Скрипт для установки окружения TG Panel, включая HestiaCP, PHP 8.2, Ioncube и другие необходимые компоненты.
 
+## Быстрая установка
+
+### На чистом сервере (без curl):
+```bash
+# 1. Обновляем систему и устанавливаем wget
+apt update
+apt install -y wget
+
+# 2. Скачиваем установщик
+wget https://raw.githubusercontent.com/guloc/tgpanel-environment/master/install.sh
+
+# 3. Делаем скрипт исполняемым и запускаем
+chmod +x install.sh
+./install.sh
+```
+
+### Если curl уже установлен:
+```bash
+curl -sSL https://raw.githubusercontent.com/guloc/tgpanel-environment/master/install.sh | bash
+```
+
 ## Системные требования
 
 - Ubuntu 18.04+ / Debian 9+
@@ -10,38 +31,7 @@
 - Чистый сервер (без установленных веб-серверов)
 - Root доступ
 
-## Установка
-
-### Способ 1 (если curl не установлен):
-```bash
-# Установка curl
-apt update
-apt install -y curl
-
-# Установка окружения
-curl -sSL https://raw.githubusercontent.com/guloc/tgpanel-environment/master/install.sh | sudo bash
-```
-
-### Способ 2 (через wget):
-```bash
-# Скачивание скрипта
-wget https://raw.githubusercontent.com/guloc/tgpanel-environment/master/install.sh
-
-# Установка прав и запуск
-chmod +x install.sh
-sudo ./install.sh
-```
-
-### Способ 3 (ручная загрузка):
-1. Скачайте файл install.sh
-2. Загрузите его на сервер (например, через SFTP)
-3. Выполните:
-```bash
-chmod +x install.sh
-sudo ./install.sh
-```
-
-## Компоненты установки
+## Что устанавливается
 
 ### Веб-сервер и PHP
 - HestiaCP (панель управления)
@@ -64,16 +54,6 @@ sudo ./install.sh
 - Wget
 - Curl
 
-## Процесс установки
-
-1. Очистка системы от конфликтующих пакетов
-2. Обновление системы
-3. Установка базовых зависимостей
-4. Установка HestiaCP
-5. Настройка PHP и расширений
-6. Установка Ioncube
-7. Создание базовой структуры директорий
-
 ## После установки
 
 После успешной установки вы получите:
@@ -91,28 +71,27 @@ sudo ./install.sh
 3. Настроить регулярные бэкапы
 4. Обновить правила файрвола
 
-## Поддержка
-
-При возникновении проблем:
-1. Проверьте логи установки
-2. Убедитесь, что сервер соответствует системным требованиям
-3. Проверьте, что все порты открыты и доступны
-
 ## Устранение неполадок
-
-### Если curl не установлен:
-```bash
-apt update
-apt install -y curl
-```
-
-### Если wget не установлен:
-```bash
-apt update
-apt install -y wget
-```
 
 ### Если возникают проблемы с правами:
 ```bash
 chmod +x install.sh
 chown root:root install.sh
+```
+
+### Если скрипт не запускается:
+```bash
+# Проверяем наличие ошибок в скрипте
+bash -n install.sh
+
+# Запускаем с выводом отладочной информации
+bash -x install.sh
+```
+
+### Проверка логов:
+```bash
+# Логи HestiaCP
+cat /var/log/hestia/nginx-error.log
+
+# Логи установки
+cat /root/hestia_info.txt
