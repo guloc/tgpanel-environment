@@ -7,120 +7,148 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}Установка TG Panel и aaPanel${NC}"
+echo -e "${GREEN}Установка окружения для TG Panel${NC}"
 echo -e "${GREEN}============================================${NC}"
 
 # Проверка прав root
 if [ "$EUID" -ne 0 ]; then 
-    echo -e "${RED}Запустите скрипт от имени root (sudo ./install.sh)${NC}"
+    echo -e "${RED}Запустите скрипт от имени root:${NC}"
+    echo -e "${YELLOW}sudo ./install.sh${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}[1/7] Установка aaPanel...${NC}"
-wget -O install.sh http://www.aapanel.com/script/install-ubuntu_6.0_en.sh
-bash install.sh aapanel
+# Функция для проверки успешности операции
+check() {
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}[✓] $1${NC}"
+        return 0
+    else
+        echo -e "${RED}[✗] $1${NC}"
+        return 1
+    fi
+}
 
-# Ждем завершения установки aaPanel
-sleep 10
+# Функция для проверки наличия команды
+check_command() {
+    if ! command -v $1 &> /dev/null; then
+        echo -e "${YELLOW}Установка $1...${NC}"
+        apt update
+        apt install -y $1
+        check "Установка $1"
+    fi
+}
 
-echo -e "${YELLOW}[2/7] Установка FFmpeg и зависимостей...${NC}"
-# Установка FFmpeg и зависимостей
-if [ -f /etc/debian_version ]; then
-    # Debian/Ubuntu
-    apt-get update
-    apt-get install -y ffmpeg
-elif [ -f /etc/redhat-release ]; then
-    # CentOS/RHEL
-    yum install -y epel-release
-    yum install -y ffmpeg ffmpeg-devel
-fi
+echo -e "\n${YELLOW}[1/8] Проверка необходимых утилит...${NC}"
+check_command curl
+check_command wget
+check_command git
+check "Проверка утилит"
 
-# Проверка установки FFmpeg
-if command -v ffmpeg >/dev/null 2>&1; then
-    echo -e "${GREEN}FFmpeg успешно установлен${NC}"
-    ffmpeg -version | head -n 1
-else
-    echo -e "${RED}Ошибка установки FFmpeg${NC}"
+echo -e "\n${YELLOW}[2/8] Очистка системы...${NC}"
+# Удаляем конфликтующие пакеты
+apt remove -y apache2* nginx* php* mysql* ufw fail2ban
+apt autoremove -y
+apt clean
+check "Очистка системы"
+
+echo -e "\n${YELLOW}[3/8] Обновление системы...${NC}"
+apt update && apt upgrade -y
+check "Обновление системы"
+
+echo -e "\n${YELLOW}[4/8] Установка минимальных зависимостей...${NC}"
+apt install -y ffmpeg
+check "Установка зависимостей"
+
+echo -e "\n${YELLOW}[5/8] Установка HestiaCP...${NC}"
+# Скачиваем установщик HestiaCP
+wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh
+
+# Делаем скрипт исполняемым
+chmod +x hst-install.sh
+
+# Генерируем случайный пароль
+ADMIN_PASS=$(openssl rand -base64 12)
+
+# Запускаем установку
+bash hst-install.sh --force \
+    --interactive no \
+    --email admin@localhost \
+    --password $ADMIN_PASS \
+    --hostname $(hostname -f) \
+    --apache no \
+    --nginx yes \
+    --php yes \
+    --multiphp yes \
+    --vsftpd yes \
+    --proftpd no \
+    --named yes \
+    --mysql yes \
+    --postgresql no \
+    --exim yes \
+    --dovecot yes \
+    --sieve no \
+    --clamav no \
+    --spamassassin no \
+    --iptables yes \
+    --fail2ban yes \
+    --quota yes \
+    --api yes
+
+# Проверяем успешность установки
+if [ ! -f "/usr/local/hestia/bin/v-list-sys-info" ]; then
+    echo -e "${RED}Ошибка установки HestiaCP. Проверьте логи установки.${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}[3/7] Настройка PHP 8.2...${NC}"
-# Установка PHP 8.2 через aaPanel CLI
-bt 12
-# Выбор PHP 8.2
-printf "11\n" | bt
+check "Установка HestiaCP"
 
-# Установка расширений PHP
-bt 13
-# Установка необходимых расширений
-printf "1\ncurl,gd,mbstring,mysql,xml,zip,json\n" | bt
+echo -e "\n${YELLOW}[6/8] Настройка PHP и дополнительных компонентов...${NC}"
+# Устанавливаем PHP 8.2 и необходимые расширения
+/usr/local/hestia/bin/v-add-web-php 8.2
+apt install -y php8.2-curl php8.2-gd php8.2-mbstring php8.2-mysql php8.2-xml php8.2-zip
+check "Настройка PHP"
 
-echo -e "${YELLOW}[4/7] Создание сайта для TG Panel...${NC}"
-# Получаем IP сервера
-SERVER_IP=$(hostname -I | awk '{print $1}')
+echo -e "\n${YELLOW}[7/8] Установка Ioncube...${NC}"
+cd /tmp
+wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+tar xzf ioncube_loaders_lin_x86-64.tar.gz
+PHP_INI_DIR=$(php -i | grep "Loaded Configuration File" | awk '{print $5}' | sed 's/.\{9\}$//')
+cp ioncube/ioncube_loader_lin_8.2.so $PHP_INI_DIR/
+echo "zend_extension = $PHP_INI_DIR/ioncube_loader_lin_8.2.so" > $PHP_INI_DIR/conf.d/00-ioncube.ini
+check "Установка Ioncube"
 
-# Создание сайта через aaPanel CLI
-bt 23
-# Создание нового сайта
-printf "1\ntgpanel.local\n" | bt
+echo -e "\n${YELLOW}[8/8] Создание базовой структуры директорий...${NC}"
+mkdir -p /home/admin/web
+chmod -R 755 /home/admin/web
+check "Создание директорий"
 
-echo -e "${YELLOW}[5/7] Создание базы данных...${NC}"
-# Генерация случайного пароля
-DB_PASSWORD=$(openssl rand -base64 12)
-
-# Создание базы данных через aaPanel CLI
-bt 5
-# Создание новой базы данных
-printf "1\ntgpanel\ntgpanel\n${DB_PASSWORD}\n" | bt
-
-echo -e "${YELLOW}[6/7] Копирование файлов TG Panel...${NC}"
-# Копирование файлов в директорию сайта
-cp -r ./* /www/wwwroot/tgpanel.local/
-chown -R www:www /www/wwwroot/tgpanel.local/
-
-echo -e "${YELLOW}[7/7] Настройка прав доступа...${NC}"
-chmod -R 755 /www/wwwroot/tgpanel.local/
-chmod -R 777 /www/wwwroot/tgpanel.local/app/cache
-chmod -R 777 /www/wwwroot/tgpanel.local/app/logs
-chmod -R 777 /www/wwwroot/tgpanel.local/session.madeline
-chmod -R 777 /www/wwwroot/tgpanel.local/assets/upload
-
-# Получение данных для входа в aaPanel
-AAPANEL_INFO=$(bt 14 | grep -A 2 "External IP")
-AAPANEL_URL=$(echo "$AAPANEL_INFO" | grep "External IP" | awk '{print $3}')
-AAPANEL_USERNAME=$(echo "$AAPANEL_INFO" | grep "username" | awk '{print $2}')
-AAPANEL_PASSWORD=$(echo "$AAPANEL_INFO" | grep "password" | awk '{print $2}')
+# Получение данных для входа
+PANEL_PORT="8083"
+EXTERNAL_IP=$(curl -s https://api.ipify.org)
 
 echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}Установка завершена успешно!${NC}"
-echo -e "${GREEN}============================================${NC}"
-echo -e "${YELLOW}Данные для доступа к aaPanel:${NC}"
-echo "URL: http://$AAPANEL_URL:7800"
-echo "Логин: $AAPANEL_USERNAME"
-echo "Пароль: $AAPANEL_PASSWORD"
-echo ""
-echo -e "${YELLOW}Данные для базы данных TG Panel:${NC}"
-echo "База данных: tgpanel"
-echo "Пользователь: tgpanel"
-echo "Пароль: $DB_PASSWORD"
-echo ""
-echo -e "${YELLOW}FFmpeg установлен:${NC}"
-ffmpeg -version | head -n 1
-echo ""
-echo -e "${YELLOW}Что дальше:${NC}"
-echo "1. Добавьте в /etc/hosts:"
-echo "   $SERVER_IP tgpanel.local"
-echo "2. Откройте http://tgpanel.local"
-echo "3. Следуйте инструкциям установщика"
-echo ""
+echo -e "${GREEN}Установка окружения завершена!${NC}"
+echo -e "\n${YELLOW}Данные для входа в HestiaCP:${NC}"
+echo "URL: https://$EXTERNAL_IP:$PANEL_PORT"
+echo "Логин: admin"
+echo "Пароль: $ADMIN_PASS"
+
+echo -e "\n${YELLOW}Следующие шаги:${NC}"
+echo "1. Войдите в панель управления по указанному выше URL"
+echo "2. Создайте новый домен для tgpanel"
+echo "3. Настройте SSL сертификат для домена"
+echo "4. Установите tgpanel, используя отдельный установочный скрипт"
+
+echo -e "\n${YELLOW}Важно:${NC}"
+echo "- Смените пароль администратора"
+echo "- Настройте регулярные бэкапы"
 echo -e "${GREEN}============================================${NC}"
 
-# Сохраняем данные в файл
-echo "aaPanel URL: http://$AAPANEL_URL:7800" > credentials.txt
-echo "aaPanel Login: $AAPANEL_USERNAME" >> credentials.txt
-echo "aaPanel Password: $AAPANEL_PASSWORD" >> credentials.txt
-echo "Database: tgpanel" >> credentials.txt
-echo "Database User: tgpanel" >> credentials.txt
-echo "Database Password: $DB_PASSWORD" >> credentials.txt
+# Сохранение данных установки
+echo "Installation Date: $(date)" > /root/hestia_info.txt
+echo "Panel URL: https://$EXTERNAL_IP:$PANEL_PORT" >> /root/hestia_info.txt
+echo "Username: admin" >> /root/hestia_info.txt
+echo "Password: $ADMIN_PASS" >> /root/hestia_info.txt
 
-echo -e "${YELLOW}Данные для доступа сохранены в файл credentials.txt${NC}"
+echo -e "\n${YELLOW}Данные сохранены в файл: /root/hestia_info.txt${NC}"
+echo -e "${GREEN}Установка окружения успешно завершена!${NC}"
