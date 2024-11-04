@@ -1,4 +1,4 @@
-# TG Panel Environment Installer
+# Установщик окружения для TG Panel
 
 Скрипт для установки окружения TG Panel, включая HestiaCP, PHP 8.2, Ioncube и другие необходимые компоненты.
 
